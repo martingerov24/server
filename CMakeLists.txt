@@ -16,15 +16,20 @@ set(SOURCES
 	src/Server.h
 
 	src/cppFiles/Server.cpp
+
+	dependencies/json.hpp
 )
 
 add_executable(server ${SOURCES})
 
 target_link_directories(${PROJECT_NAME} PUBLIC
-	)
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
 	cppzmq-static
+	${PROJECT_SOURCE_DIR}/dependencies
+	${PROJECT_SOURCE_DIR}/src
+	${PROJECT_SOURCE_DIR}/src/cppFiles
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
