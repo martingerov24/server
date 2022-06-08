@@ -14,6 +14,7 @@ set(SOURCES
 	#code
 	main.cpp
 	src/Server.h
+	src/json.h
 
 	src/cppFiles/Server.cpp
 

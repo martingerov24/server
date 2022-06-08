@@ -4,7 +4,9 @@
 
 class Server
 {
-	void catchPostRequest(int size);
+	void catchPostRequest(
+		int size
+	);
 public:
 	Server() = default;
 	Server(const Server& other) = delete;

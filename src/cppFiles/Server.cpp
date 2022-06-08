@@ -47,7 +47,7 @@ void Server::catchPostRequest(
 		// std::memcpy(msmTemp.data(), zmq_msg_data(&buffer), zmq_msg_size(&buffer));
 		// tensor.insert(tensor.end(), std::begin(msmTemp), std::end(msmTemp));
 
-		//nightly likely not to work, but if it does, it would make 1 copy instead of
+		// highly likely not to work, but if it does, it would make 1 copy instead of
 		// allocation and 2 copies
 		tensor.insert(tensor.end(), zmq_msg_get(&buffer, 0), zmq_msg_size(&buffer));
 	}
@@ -66,8 +66,9 @@ void Server::listen() {
 	if (sizeOfBufferInBytes == -1) {
 		//TODO: here you should request
 		//to the client for another message
+		printf("the size of buffer in bytes is below 0\n");
 		return;
 	}
-	catchPostRequest(sizeOfBufferInBytes);
+	// catchPostRequest(sizeOfBufferInBytes);
 	//loop here
 }
