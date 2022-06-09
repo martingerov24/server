@@ -28,19 +28,27 @@ void Server::bind(
 	socket.bind(port);
 }
 
+//there ain't no way for this to work
 void Server::catchPostRequest(
-	int size // size in bytes
+	std::vector<int32_t> tensor,// output tensor
+	int size 					// size in bytes
 ) {
-	std::vector<int> tensor(size / 4, 0);
+	tensor.resize(size / 4, 0);
 	//PackageSize = global const variable, defined in dep.h
 	int iterations = (size / sizeof(int32_t) + PackageSize - 1) / PackageSize;
 
+	Dprintf("%d -> iterations ", iterations);
 	for (int i = 0; i < iterations; i++){
 		zmq_msg_t buffer;
 		int nbytes = zmq_msg_init(&buffer);
-		nbytes = socket.recv(&buffer, PackageSize);
+
+		Dprintf("%d -> nbytes before", nbytes);
+		nbytes = zmq_recv(&socket, &buffer, PackageSizeInBytes, ZMQ_DONTWAIT);
+		// nbytes = socket.recv(&buffer, PackageSizeInBytes);
+		Dprintf("%d -> nbytes after", nbytes);
+
 		if(nbytes == -1){
-			printf("socket did not receive anything\n");
+			Dprintf("function send returned -> %d", nbytes);
 			return;
 		}
 		// std::vector<int> msmTemp(zmq_msg_size(&buffer));
@@ -49,6 +57,7 @@ void Server::catchPostRequest(
 
 		// highly likely not to work, but if it does, it would make 1 copy instead of
 		// allocation and 2 copies
+		socket.send(zmq::buffer("cross fingers mfuckers!\n"), zmq::send_flags::none);
 		tensor.insert(tensor.end(), zmq_msg_get(&buffer, 0), zmq_msg_size(&buffer));
 	}
 }
@@ -57,18 +66,18 @@ void Server::listen() {
 	int32_t sizeOfIncommingBuffer;
 	HTTPReq request = HTTPReq::None;
 
-	//  Wait for next request from client
-	int size = 	socket.recv(&msg);
+	socket.recv(&msg);
+	Dprintf("%s -> iterations", msg.to_string().c_str());
 	int sizeOfBufferInBytes = jsonSend::getReqAndSize(
 		msg.to_string(),
 	 	request
 	);
 	if (sizeOfBufferInBytes == -1) {
-		//TODO: here you should request
-		//to the client for another message
-		printf("the size of buffer in bytes is below 0\n");
 		return;
 	}
-	// catchPostRequest(sizeOfBufferInBytes);
+	Dprintf("%d -> sizeOfBufferInBytes", sizeOfBufferInBytes);
+	socket.send(zmq::buffer("good soup\n"));
+	std::vector<int32_t> tensor;
+	catchPostRequest(tensor, sizeOfBufferInBytes);
 	//loop here
 }
