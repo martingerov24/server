@@ -29,28 +29,20 @@ void Server::bind(
 }
 
 void Server::catchPostRequest(
+	std::vector<int32_t>& tensor,
 	int size // size in bytes
 ) {
-	std::vector<int> tensor(size / 4, 0);
-	//PackageSize = global const variable, defined in dep.h
 	int iterations = (size / sizeof(int32_t) + PackageSize - 1) / PackageSize;
+	zmq::message_t buffer(size);
+	Dprintf("initing zmq::message_t, size -> %d", buffer.size());
+	socket.recv(&buffer, size);
 
-	for (int i = 0; i < iterations; i++){
-		zmq_msg_t buffer;
-		int nbytes = zmq_msg_init(&buffer);
-		nbytes = socket.recv(&buffer, PackageSize);
-		if(nbytes == -1){
-			printf("socket did not receive anything\n");
-			return;
-		}
-		// std::vector<int> msmTemp(zmq_msg_size(&buffer));
-		// std::memcpy(msmTemp.data(), zmq_msg_data(&buffer), zmq_msg_size(&buffer));
-		// tensor.insert(tensor.end(), std::begin(msmTemp), std::end(msmTemp));
+	zmq_sleep(1);
+	socket.send(zmq::buffer("kakvo stavaa be brato"), zmq::send_flags::none);
 
-		// highly likely not to work, but if it does, it would make 1 copy instead of
-		// allocation and 2 copies
-		tensor.insert(tensor.end(), zmq_msg_get(&buffer, 0), zmq_msg_size(&buffer));
-	}
+	tensor.resize(size);
+	std::memcpy(tensor.data(), &buffer, buffer.size());
+	// tensor.insert(tensor.end(), &buffer, buffer.size());
 }
 void Server::listen() {
 	zmq::message_t msg;
@@ -58,17 +50,20 @@ void Server::listen() {
 	HTTPReq request = HTTPReq::None;
 
 	//  Wait for next request from client
-	int size = 	socket.recv(&msg);
+	socket.recv(&msg);
 	int sizeOfBufferInBytes = jsonSend::getReqAndSize(
 		msg.to_string(),
 	 	request
 	);
+	Dprintf("message is %s",msg.to_string().c_str());
 	if (sizeOfBufferInBytes == -1) {
 		//TODO: here you should request
 		//to the client for another message
 		printf("the size of buffer in bytes is below 0\n");
 		return;
 	}
-	// catchPostRequest(sizeOfBufferInBytes);
+	socket.send(zmq::buffer("potato"), zmq::send_flags::dontwait);
+	std::vector<int32_t> tensor;
+	catchPostRequest(tensor, sizeOfBufferInBytes);
 	//loop here
 }

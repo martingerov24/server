@@ -5,6 +5,7 @@
 class Server
 {
 	void catchPostRequest(
+	std::vector<int32_t>& tensor,
 		int size
 	);
 public:
