@@ -4,9 +4,9 @@
 
 class Server
 {
-	void catchPostRequest(
+	bool catchPostRequest(
 	std::vector<int32_t>& tensor,
-		int size
+		const int size
 	);
 public:
 	Server() = default;
